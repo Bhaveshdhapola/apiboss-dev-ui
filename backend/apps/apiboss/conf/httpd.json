@@ -1,0 +1,19 @@
+{
+    "timeout": 120000,
+    "enableGZIPEncoding": true,
+    "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST, GET",
+        "Access-Control-Allow-Headers": "*",
+        "Access-Control-Expose-Headers": "*",
+        "Access-Control-Max-Age": 86400
+    },
+    "host" : "::",
+    "port" : 9094,
+    "ipblacklistRefresh": 5000,
+    "ipwhitelistRefresh": 5000,
+    "ssl": false,
+    "forceHTTP1": true,
+    "sslKeyFile":"/etc/letsencrypt/live/apiboss.org/privkey.pem",
+    "sslCertFile":"/etc/letsencrypt/live/apiboss.org/fullchain.pem"
+}
