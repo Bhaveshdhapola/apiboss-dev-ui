@@ -110,7 +110,7 @@ async function openDialog() {
 
 async function getPublicApibossServerDetails() {
     let publicServerDetail = await $$.requireJSON(`${APP_CONSTANTS.APIBOSS_CONF_PATH}/serverDetails.json`);
-    return publicServerDetail;
+    return publicServerDetail.servers.default;
 }
 
 export const settings = { openDialog };

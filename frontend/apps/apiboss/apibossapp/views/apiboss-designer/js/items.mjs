@@ -82,15 +82,18 @@ async function getItemList() {
             if (loginResult.result) {
                 try {
                     serverDetails.secure = loginResult.scheme == "https";
-                    const listApiResponse =  await apiman.rest(`${loginResult.scheme}://${publicServerDetails.serverIP}:${publicServerDetails.port}/apps/apiboss/admin/list`, "POST", 
-                    { apikey:defaultSeverDetails.data.publicapikey,domain}, true,true);
-                    const listApiResult = [];
-                    listApiResponse.apis.forEach((apipath)=>{
-                        if(_checkDomainAndSubdomain(apipath.split("/",2).join("/").substring(1), String(domain))) {listApiResult.push(apipath)}
-                    })
+                    // const listApiResponse =  await apiman.rest(`${loginResult.scheme}://${publicServerDetails.serverIP}:${publicServerDetails.port}/apps/apiboss/admin/list`, "POST", 
+                    // { apikey:defaultSeverDetails.data.publicapikey,domain}, true,true);
+                    // console.log(listApiResponse);
+                    // const listApiResult = [];
+                    // listApiResponse.apis.forEach((apipath)=>{
+                    //     if(_checkDomainAndSubdomain(apipath.split("/",2).join("/").substring(1), String(domain))) {listApiResult.push(apipath)}
+                    // })
                     apiman.registerAPIKeys({ "*": "fheiwu98237hjief8923ydewjidw834284hwqdnejwr79389" }, "X-API-Key");
                     result = await apiman.rest(APP_CONSTANTS.API_GETMETADATA, "POST", { org: org, name: publicServerDetails.package, id: userid, server: publicServerDetails.serverIP, port: publicServerDetails.port, isPublicServer: true }, true, true);
-                    if(listApiResult.length&&result.result){
+                    // if(listApiResult.length&&result.result){
+                    if(result.result){
+
                     session.set(ORG_METADATA, result.data);
                     if(!defaultSeverDetails.data.publicapikey.length) { 
                         await loader.afterLoading(); 
@@ -102,15 +105,21 @@ async function getItemList() {
                         return "[]";
                     };
 
-                    let listApis = listApiResult;
+                    // let listApis = listApiResult;
                     let apilist = [];   
-                    listApis.forEach((eachapi)=>{
-                        result.data.apis.forEach((api)=>{
-                        if(eachapi.substring(eachapi.split("/",2).join("/").length) == api.exposedpath) {
+                    // listApis.forEach((eachapi)=>{
+                    //     result.data.apis.forEach((api)=>{
+                    //     if(eachapi.substring(eachapi.split("/",2).join("/").length) == api.exposedpath) {
+                    //       apilist.push(api);
+                    //     }
+                    //   })
+                    // });
+
+                    result.data.apis.forEach((api)=>{
+                        if(api.apikeys.includes(defaultSeverDetails.data.publicapikey)) {
                           apilist.push(api);
                         }
-                      })
-                    });
+                      });
                     let policy = [];
                     apilist.forEach((api)=>{
                       result.data.policies.forEach((eachpolicy)=>{
@@ -175,7 +184,8 @@ async function getItemList() {
 
 async function getPublicApibossServerDetails() {
     let publicServerDetail = await $$.requireJSON(`${APP_CONSTANTS.APIBOSS_CONF_PATH}/serverDetails.json`);
-    return publicServerDetail;
+    console.log(publicServerDetail.servers.default);
+    return publicServerDetail.servers.default;
 }
 
 function _checkDomainAndSubdomain(str1, str2) {

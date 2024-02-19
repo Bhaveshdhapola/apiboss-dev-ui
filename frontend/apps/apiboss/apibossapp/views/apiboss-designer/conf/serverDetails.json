@@ -1,7 +1,23 @@
 {
-    "serverIP": "apiboss.org",
-    "port": "9090",
-    "adminid": "admin",
-    "adminpassword": "DLT4TekMonks",
-    "package": "prod"
+    "org_metadata": {
+        "serverIP": "127.0.0.1",
+        "port": "9090",
+        "package": "prod"
+    },
+    "servers": {
+        "default": {
+            "serverIP": "127.0.0.1",
+            "port": "9090",
+            "adminid": "admin",
+            "adminpassword": "DLT4TekMonks",
+            "package": "prod"
+        },
+        "sg-singapore": {
+            "serverIP": "127.0.0.1",
+            "port": "9091",
+            "adminid": "admin",
+            "adminpassword": "DLT4TekMonks",
+            "package": "prod"
+        }
+    }
 }

@@ -103,14 +103,28 @@ function nodeDescriptionChanged(_nodeName, id, description) {
 
 }
 
-function getModel() {
+async function getModel(isPublicServer) {
     const retModel = util.clone(apibossmodelObj);
+    if (isPublicServer){
+        retModel?.apis.forEach(async (api)=>{
+            let apikeys = [];
+            retModel?.policies.forEach((policy)=>{
+                if(api.dependencies.includes(policy.id)){
+                    apikeys.push(policy.apikey);
+                }
+            });
+        api.apikeys = [... new Set(apikeys)].join();
+        let serverDetails = await getPublicApibossServerDetails(api.selectregion.replace(/\s/g, '').toLowerCase());
+        api.serverIP = serverDetails.serverIP;
+        api.port = serverDetails.port;
+       })
+    }
     retModel?.policies.forEach((policy)=> {if(policy.password.length) policy.password = ""});
     return retModel;
 
 }
 
-function getparsedData() {
+function getparsedData(isPublicServer) {
     let domain = getRootDomain(session.get(APP_CONSTANTS.USERORGDOMAIN).toString());
     let parsedData = {},finalData = [], rateLimit = {}, inputoutput = {}, apiregistrydata = {};
     const retModel = util.clone(apibossmodelObj);
@@ -168,6 +182,7 @@ function getparsedData() {
         parsedData["backendurlmethod"] = api.backendurlmethod;
         parsedData["exposedmethod"] = api.exposedmethod;
         parsedData["isrestapi"] = api.isrestapi;
+        parsedData["region"] = api.selectregion.replace(/\s/g, '').toLowerCase();
         parsedData["customContentType"] = api.contentinput;
          for(const policy of retModel.policies) {
             if(api.dependencies.includes(policy.id)){
@@ -184,7 +199,13 @@ function getparsedData() {
         parsedData["tokensubject"] = [...new Set(addTokenSub)].join();
         apiregistrydata[parsedData["exposedpath"]] = parsedData;
     }
+    if(isPublicServer){
+        const groupedObjects = groupObjectsByKey(apiregistrydata, 'region', "apiregistrydata");
+        console.log(groupedObjects);
+        apiregistrydata = groupedObjects;
+    }
     finalData.push({ apiregistrydata: apiregistrydata });
+    console.log(finalData);
     return {result:true,data:finalData};
 }
 
@@ -249,6 +270,28 @@ const getRootDomain = (domain) => {
     let indexOfDot = domain.indexOf(".");
     if(lastIndexOfDot == indexOfDot) { return domain; }
     else { return domain.substring(domain.split(".", 1).join(".").length + 1); }
+}
+
+function groupObjectsByKey(objects, key, innerObjName) {
+    const groupedObjects = {};
+    for (const objectId in objects) {
+        if (objects.hasOwnProperty(objectId)) {
+            const obj = objects[objectId];
+            const nestedKey = obj[key];
+            if (!groupedObjects[nestedKey]) {
+                groupedObjects[nestedKey] = {};
+                groupedObjects[nestedKey][innerObjName] = {};
+            }
+            groupedObjects[nestedKey][innerObjName][objectId] = obj;
+        }
+    }
+    return groupedObjects;
+}
+
+async function getPublicApibossServerDetails(region) {
+    const publicServerDetail = await $$.requireJSON(`${APP_CONSTANTS.APIBOSS_CONF_PATH}/serverDetails.json`);
+    console.log(Object.values(publicServerDetail.servers[region]));
+    return publicServerDetail.servers[region];
 }
 
 export const apibossmodel = {

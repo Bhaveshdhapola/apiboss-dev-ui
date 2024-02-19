@@ -99,10 +99,31 @@ async function getModelList(server, port, adminid, adminpassword) {
  * @returns {result: true|false, err: Error text on failure, raw_err: Raw error, key: Error i18n key}
  */
 async function publishModel(parsedData, name, server, port, adminid, adminpassword) {
+
+    console.log(parsedData);
     if(!server.length && !port.length && !adminid.length && !adminpassword.length && !name.length) {
-        [server, port, adminid, adminpassword, name] = await getPublicApibossServerDetails();
+        // let regionObj = parsedData.data[2];
+        // console.log(regionObj);
+        for(let region in parsedData[2].apiregistrydata){
+            console.log(region);
+            [server, port, adminid, adminpassword, name] = await getPublicApibossServerDetails(region);
+            
+            let finalArr = [];
+            finalArr.push(JSON.parse(JSON.stringify({rateLimit: parsedData[0]})));
+            finalArr.push(JSON.parse(JSON.stringify({inputoutput: parsedData[1]})));
+            finalArr.push(JSON.parse(JSON.stringify({apiregistrydata: parsedData[2].apiregistrydata[region].apiregistrydata})));
+            console.log(finalArr);
+            const loginResult = await loginToServer(server, port, adminid, adminpassword);
+    if (!loginResult.result) return loginResult;    // failed to connect or login
+    try {   // try to publish now
+        (await apiman.rest(`${loginResult.scheme}://${server}:${port}/apps/apiboss/admin/updateconf`, "POST", 
+            { data: finalArr}, true,true)).result;
+    } catch (err)  {return {result: false, err: "Server connection issue", raw_err: err, key: "LoginIssue"} }
+        }
+        return {result: true, err: "Publishing failed at the server", 
+            raw_err: "Publishing failed at the server", key: "PublishServerIssue"};
     }
-    if(server.length && port.length && adminid.length && adminpassword.length && name.length) {
+    else if(server.length && port.length && adminid.length && adminpassword.length && name.length) {
     const loginResult = await loginToServer(server, port, adminid, adminpassword);
     if (!loginResult.result) return loginResult;    // failed to connect or login
     try {   // try to publish now
@@ -117,12 +138,20 @@ async function publishMetaData(metaData,org,userid,name,server, port) {
     let isPublicServer = false;
 
     if(!server.length && !port.length && !name.length) {
-        const publicServerDetail = await getPublicApibossServerDetails();
-        [server, port, name] = [publicServerDetail[0], publicServerDetail[1], publicServerDetail.pop()];
+        [server, port, name] = await getPublicApibossMetadataDetails();
+        // console.log(publicServerDetail);
+        // name = publicServerDetail[0];
         isPublicServer = true;
+        apiman.registerAPIKeys({"*":"fheiwu98237hjief8923ydewjidw834284hwqdnejwr79389"},"X-API-Key");
+
+        try {   // try to publish now
+            return {result: (await apiman.rest(APP_CONSTANTS.API_CREATEORUPDATEMETA, "POST", 
+                 {metadata: metaData,org,id:userid,server,port,name,isPublicServer}, true,true)).result, err: "Publishing failed at the server", 
+                raw_err: "Publishing failed at the server", key: "PublishServerIssue"};
+        } catch (err)  {return {result: false, err: "Server connection issue", raw_err: err, key: "ConnectIssue"} }
     }
-    apiman.registerAPIKeys({"*":"fheiwu98237hjief8923ydewjidw834284hwqdnejwr79389"},"X-API-Key");
-    if(server.length && port.length && name.length) {
+    else if(server.length && port.length && name.length) {
+        apiman.registerAPIKeys({"*":"fheiwu98237hjief8923ydewjidw834284hwqdnejwr79389"},"X-API-Key");
     try {   // try to publish now
         return {result: (await apiman.rest(APP_CONSTANTS.API_CREATEORUPDATEMETA, "POST", 
              {metadata: metaData,org,id:userid,server,port,name,isPublicServer}, true,true)).result, err: "Publishing failed at the server", 
@@ -151,9 +180,16 @@ async function loginToServer(server, port, adminid, adminpassword) {
     }
 }
 
-async function getPublicApibossServerDetails() {
+async function getPublicApibossServerDetails(region) {
     const publicServerDetail = await $$.requireJSON(`${APP_CONSTANTS.APIBOSS_CONF_PATH}/serverDetails.json`);
-    return Object.values(publicServerDetail);
+    console.log(Object.values(publicServerDetail.servers[region]));
+    return Object.values(publicServerDetail.servers[region]);
+}
+
+async function getPublicApibossMetadataDetails() {
+    const publicServerDetail = await $$.requireJSON(`${APP_CONSTANTS.APIBOSS_CONF_PATH}/serverDetails.json`);
+    console.log(Object.values(publicServerDetail["org_metadata"]));
+    return Object.values(publicServerDetail["org_metadata"]);
 }
 
 async function setDefaultSettings(org,userid,server,port,packageName,apikey,isPublic,adminid,adminpassword) {

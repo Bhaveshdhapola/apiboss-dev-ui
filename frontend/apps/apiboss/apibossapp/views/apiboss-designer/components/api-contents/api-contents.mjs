@@ -8,6 +8,7 @@
  import { code_snippet_window } from "../code-snippet-window/code-snippet-window.mjs";
  import { session } from "/framework/js/session.mjs";
 import { apibossmodel } from "../../model/apibossmodel.mjs";
+
  
 //  const COMPONENT_PATH = util.getModulePath(import.meta),VIEW_PATH=APP_CONSTANTS.CONF_PATH,ORG_DEV_METADATA = "__org_dev_metadata";
 const COMPONENT_PATH = util.getModulePath(import.meta),ORG_DEV_METADATA = "__org_dev_metadata";
@@ -35,6 +36,8 @@ const COMPONENT_PATH = util.getModulePath(import.meta),ORG_DEV_METADATA = "__org
 
    model = session.get(ORG_DEV_METADATA),serverDetails =JSON.parse(session.get("__org_server_details"));;
    for (const api of model.apis) {
+    console.log(api?.serverIP);
+    console.log(api?.port);
      let inputParams = [], outputParams = [];
  
      let IdsOfPolicies = api.dependencies, apikeys = [], jwtText = false, securityData = [];
@@ -55,7 +58,7 @@ const COMPONENT_PATH = util.getModulePath(import.meta),ORG_DEV_METADATA = "__org
      traverseObject(JSON.parse(JSON.parse(api["input-output"])[1])["responses"]["200"]["content"]["application/json"]["schema"]["properties"], false, function (node, key) { if (node && typeof node == "object") if (node.type) { outputParams.push({ "name": key, "type": node.type, "desc": node.desc ? node.desc : "", "index": outputParams.length + 1 }); } });
      if (api["apiname"] == elementid) {
        data["description"] = api["apidescription"];
-       data["exposedpath"] = `${serverDetails.secure ?"https":"http"}://${serverDetails.host}:${serverDetails.port}/${domain}${api["exposedpath"]}`;
+       data["exposedpath"] = `${serverDetails.secure ?"https":"http"}://${api?.serverIP ? api.serverIP: serverDetails.host}:${api?.port ? api.port: serverDetails.port}/${domain}${api["exposedpath"]}`;
        data["exposedmethod"] = api["exposedmethod"];
        if (api["isrestapi"] == "YES") data["standard"] = "REST";
        else data["standard"] = "NOT REST";

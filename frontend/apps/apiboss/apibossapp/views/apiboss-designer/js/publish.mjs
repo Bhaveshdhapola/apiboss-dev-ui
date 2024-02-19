@@ -35,19 +35,26 @@ async function openDialog() {
     DIALOG.showDialog(dialogPropertiesPath, html, null, DIALOG_RET_PROPS, 
         async (typeOfClose, result, dialogElement) => { if (typeOfClose == "submit") {
             saved_props = util.clone(result, ["adminpassword"]); // don't save password, for security
-            const parsedData = apibossmodel.getparsedData();
+            let isPublicServer = false;
+            if(!result.name && !result.server && !result.port && !result.adminid && !result.adminpasswor){
+                isPublicServer = true;
+            }
+            const parsedData = apibossmodel.getparsedData(isPublicServer);
+            console.log(parsedData);
             result.adminpassword = password_box.getShadowRootByHostId("adminpassword").querySelector("#pwinput").value; 
             if(!parsedData.result){ DIALOG.showError(dialogElement,parsedData.key);return false}
-            const metadata = apibossmodel.getModel();
+            const metadata = await apibossmodel.getModel(isPublicServer);
             const org = new String(session.get(APP_CONSTANTS.USERORG)); 
             const userid = new String(session.get(APP_CONSTANTS.USERID)); 
             await loader.beforeLoading();_disableButton(dialogElement);
             const pubResult = await serverManager.publishModel(parsedData.data, result.name, result.server, result.port, result.adminid, result.adminpassword);
+            console.log(pubResult);
             if (!pubResult.result) {
                 await loader.afterLoading(); _enableButton(dialogElement);
                 DIALOG.showError(dialogElement, await i18n.get(pubResult.key)); return ;}
             else{
                 const pubMetaResult = await serverManager.publishMetaData(metadata,org,userid, result.name, result.server, result.port);
+                console.log(pubMetaResult);
                 blackboard.broadcastMessage(MSG_RENAME_MODEL, {name: result.name});
                 await loader.afterLoading(); _enableButton(dialogElement);
                 if ( !pubMetaResult.result) DIALOG.showError(dialogElement, await i18n.get(pubMetaResult.key)); 
