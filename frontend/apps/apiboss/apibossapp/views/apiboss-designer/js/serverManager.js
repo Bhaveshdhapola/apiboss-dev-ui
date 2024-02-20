@@ -45,7 +45,7 @@ async function getModelList(server, port, adminid, adminpassword) {
     let isPublicServer = false;
 
     if(!server.length && !port.length && !adminid.length && !adminpassword.length && !name.length) {
-        [server, port, adminid, adminpassword, name] = await getPublicApibossServerDetails();
+        [server, port, adminid, adminpassword, name] = await getPublicApibossServerDetails("default");
         isPublicServer = true;
     }
     await loader.beforeLoading();
@@ -100,19 +100,15 @@ async function getModelList(server, port, adminid, adminpassword) {
  */
 async function publishModel(parsedData, name, server, port, adminid, adminpassword) {
 
-    console.log(parsedData);
     if(!server.length && !port.length && !adminid.length && !adminpassword.length && !name.length) {
         // let regionObj = parsedData.data[2];
-        // console.log(regionObj);
         for(let region in parsedData[2].apiregistrydata){
-            console.log(region);
             [server, port, adminid, adminpassword, name] = await getPublicApibossServerDetails(region);
             
             let finalArr = [];
             finalArr.push(JSON.parse(JSON.stringify({rateLimit: parsedData[0]})));
             finalArr.push(JSON.parse(JSON.stringify({inputoutput: parsedData[1]})));
             finalArr.push(JSON.parse(JSON.stringify({apiregistrydata: parsedData[2].apiregistrydata[region].apiregistrydata})));
-            console.log(finalArr);
             const loginResult = await loginToServer(server, port, adminid, adminpassword);
     if (!loginResult.result) return loginResult;    // failed to connect or login
     try {   // try to publish now
@@ -139,7 +135,6 @@ async function publishMetaData(metaData,org,userid,name,server, port) {
 
     if(!server.length && !port.length && !name.length) {
         [server, port, name] = await getPublicApibossMetadataDetails();
-        // console.log(publicServerDetail);
         // name = publicServerDetail[0];
         isPublicServer = true;
         apiman.registerAPIKeys({"*":"fheiwu98237hjief8923ydewjidw834284hwqdnejwr79389"},"X-API-Key");
@@ -182,13 +177,11 @@ async function loginToServer(server, port, adminid, adminpassword) {
 
 async function getPublicApibossServerDetails(region) {
     const publicServerDetail = await $$.requireJSON(`${APP_CONSTANTS.APIBOSS_CONF_PATH}/serverDetails.json`);
-    console.log(Object.values(publicServerDetail.servers[region]));
     return Object.values(publicServerDetail.servers[region]);
 }
 
 async function getPublicApibossMetadataDetails() {
     const publicServerDetail = await $$.requireJSON(`${APP_CONSTANTS.APIBOSS_CONF_PATH}/serverDetails.json`);
-    console.log(Object.values(publicServerDetail["org_metadata"]));
     return Object.values(publicServerDetail["org_metadata"]);
 }
 

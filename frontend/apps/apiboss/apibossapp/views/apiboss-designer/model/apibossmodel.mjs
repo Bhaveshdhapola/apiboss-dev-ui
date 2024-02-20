@@ -201,11 +201,9 @@ function getparsedData(isPublicServer) {
     }
     if(isPublicServer){
         const groupedObjects = groupObjectsByKey(apiregistrydata, 'region', "apiregistrydata");
-        console.log(groupedObjects);
         apiregistrydata = groupedObjects;
     }
     finalData.push({ apiregistrydata: apiregistrydata });
-    console.log(finalData);
     return {result:true,data:finalData};
 }
 
@@ -290,7 +288,6 @@ function groupObjectsByKey(objects, key, innerObjName) {
 
 async function getPublicApibossServerDetails(region) {
     const publicServerDetail = await $$.requireJSON(`${APP_CONSTANTS.APIBOSS_CONF_PATH}/serverDetails.json`);
-    console.log(Object.values(publicServerDetail.servers[region]));
     return publicServerDetail.servers[region];
 }
 

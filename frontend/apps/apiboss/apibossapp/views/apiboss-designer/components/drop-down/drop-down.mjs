@@ -60,9 +60,9 @@
 function disableOrEnableInputField(element) {
     const dropDownShadowRoot = drop_down.getShadowRootByHost(element) ? drop_down.getShadowRootByHost(element) : drop_down.getShadowRootByContainedElement(element);
     // const shadowRoot = diloagBoxComponent.getShadowRootByContainedElement(drop_down.getHostElement(dropDownShadowRoot));
-    const shadowRoot = dialog_box.getShadowRootByContainedElement(drop_down.getHostElement(dropDownShadowRoot));
+    const shadowRoot = dialog_box.getShadowRootByContainedElement(drop_down.getHostElement(element));
 
-    if(drop_down.getHostElement(dropDownShadowRoot).id == "isauthenticationneeded") {
+    if(drop_down.getHostElement(element).id == "isauthenticationneeded") {
       if(dropDownShadowRoot.querySelector('select').value == "NO"){
         _setAttribute(shadowRoot, ['userid', 'password']);
       }
@@ -70,7 +70,7 @@ function disableOrEnableInputField(element) {
         _removeAttribute(shadowRoot, ['userid', 'password']);
       }
     }
-    else if(drop_down.getHostElement(dropDownShadowRoot).id == "isjwttokenneeded") {
+    else if(drop_down.getHostElement(element).id == "isjwttokenneeded") {
       if(dropDownShadowRoot.querySelector('select').value == "NO"){
         _setAttribute(shadowRoot, ['jwtsubject']);
 
@@ -79,7 +79,7 @@ function disableOrEnableInputField(element) {
         _removeAttribute(shadowRoot, ['jwtsubject']);
       }
     }
-    else if(drop_down.getHostElement(dropDownShadowRoot).id == "istokenneeded") {
+    else if(drop_down.getHostElement(element).id == "istokenneeded") {
       if(dropDownShadowRoot.querySelector('select').value == "NO"){
         _setAttribute(shadowRoot, ['tokensubject']);
         }
@@ -87,7 +87,7 @@ function disableOrEnableInputField(element) {
         _removeAttribute(shadowRoot, ['tokensubject']);
       }
     }
-    else if(drop_down.getHostElement(dropDownShadowRoot).id == "israteenforcementneeded") {
+    else if(drop_down.getHostElement(element).id == "israteenforcementneeded") {
       if(dropDownShadowRoot.querySelector('select').value == "NO"){
         _setAttribute(shadowRoot, ['persec', 'permin', 'perhour', 'perday', 'permonth', 'peryear']);
         }
