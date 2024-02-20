@@ -36,8 +36,6 @@ const COMPONENT_PATH = util.getModulePath(import.meta),ORG_DEV_METADATA = "__org
 
    model = session.get(ORG_DEV_METADATA),serverDetails =JSON.parse(session.get("__org_server_details"));;
    for (const api of model.apis) {
-    console.log(api?.serverIP);
-    console.log(api?.port);
      let inputParams = [], outputParams = [];
  
      let IdsOfPolicies = api.dependencies, apikeys = [], jwtText = false, securityData = [];

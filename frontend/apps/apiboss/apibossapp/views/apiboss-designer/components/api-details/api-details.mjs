@@ -228,10 +228,6 @@ function getParaVal(element, obj) {
     let resObj = {};
     newChild.shift();
     newChild.forEach((each)=>{
-      // each.querySelectorAll(":scope>div").forEach((para)=>{
-      //   console.log(para);
-      //   console.log(para.querySelector(":scope>input"))
-      // })
       getParaVal(each, resObj);
     })
     obj[`${target}`] = resObj;
@@ -291,21 +287,29 @@ async function tryIt(element, event) {
   if(shadowRoot.querySelector("input#token-input")){
     jwtToken = shadowRoot.querySelector("input#token-input").value;
   }
-
+  let isPublicServer;
   const org = new String(session.get(APP_CONSTANTS.USERORG));
   const userid = new String(session.get(APP_CONSTANTS.USERID));
   const settingDetails = (await apiman.rest(APP_CONSTANTS.API_CREATEORGETSETTINGS, "POST", { org, id: userid }, true, true)).data;
-if(settingDetails.server.length && settingDetails.port.length && settingDetails.package.length) apikey = settingDetails.apikey;
+if(settingDetails.server.length && settingDetails.port.length && settingDetails.package.length) {apikey = settingDetails.apikey;isPublicServer=false}
 else if(!settingDetails.publicapikey.length) {
   if(session.get(ORG_DEV_METADATA).policies.length)
 apikey = session.get(ORG_DEV_METADATA).policies[0]["apikey"];
 
 }
-else apikey = settingDetails.publicapikey;
+else {apikey = settingDetails.publicapikey;isPublicServer=true;}
   let xapikey = {"*": apikey}
   apiman.registerAPIKeys(xapikey, "x-api-key");
+  let model = session.get(ORG_DEV_METADATA), hostname, port;
+  let domain = apibossmodel.getRootDomain((session.get(APP_CONSTANTS.USERORGDOMAIN).toString()));
+  for(let api of model.apis){
+    if(path == `/${domain}${api["exposedpath"]}`){
+      hostname = api.serverIP;
+      port = api.port;
+    }
+  }
 
-  const host = new URL(`${serverDetails.secure ? `https` : `http`}://${serverDetails.host}:${serverDetails.port}`).host; // have to change the host for our dynamic case
+  const host =isPublicServer? new URL(`${serverDetails.secure ? `https` : `http`}://${hostname}:${port}`).host: new URL(`${serverDetails.secure ? `https` : `http`}://${serverDetails.host}:${serverDetails.port}`).host; // have to change the host for our dynamic case
   let sub = 'access'
   if(shadowRoot.querySelector("#userid") && shadowRoot.querySelector("#password")){
     const storage = _getAPIManagerStorage(); storage.tokenManager[`basic_auth`] = `Basic ${btoa(`${shadowRoot.querySelector("#MyInput").value}:${shadowRoot.querySelector("#Mypwd").value}`)}`; _setAPIManagerStorage(storage);
@@ -314,7 +318,7 @@ else apikey = settingDetails.publicapikey;
   if (jwtToken) { const storage = _getAPIManagerStorage(); storage.tokenManager[`${host}_${sub}`] = jwtToken; _setAPIManagerStorage(storage); }
   let resp;
   try {
-    resp = await apiman.rest(`${serverDetails.secure ? `https` : `http`}://${serverDetails.host}:${serverDetails.port}${path}`, `${method.toUpperCase()}`, reqBody, (jwtToken) ? true : false, false, false, false, true);
+    resp =isPublicServer?await apiman.rest(`${serverDetails.secure ? `https` : `http`}://${hostname}:${port}${path}`, `${method.toUpperCase()}`, reqBody, (jwtToken) ? true : false, false, false, false, true): await apiman.rest(`${serverDetails.secure ? `https` : `http`}://${serverDetails.host}:${serverDetails.port}${path}`, `${method.toUpperCase()}`, reqBody, (jwtToken) ? true : false, false, false, false, true);
   } catch (error) {
     resp = {respErr: {status: "500", statusText: "Internal Server Error"}};
   }

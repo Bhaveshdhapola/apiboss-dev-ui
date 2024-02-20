@@ -84,7 +84,6 @@ async function getItemList() {
                     serverDetails.secure = loginResult.scheme == "https";
                     // const listApiResponse =  await apiman.rest(`${loginResult.scheme}://${publicServerDetails.serverIP}:${publicServerDetails.port}/apps/apiboss/admin/list`, "POST", 
                     // { apikey:defaultSeverDetails.data.publicapikey,domain}, true,true);
-                    // console.log(listApiResponse);
                     // const listApiResult = [];
                     // listApiResponse.apis.forEach((apipath)=>{
                     //     if(_checkDomainAndSubdomain(apipath.split("/",2).join("/").substring(1), String(domain))) {listApiResult.push(apipath)}
@@ -184,7 +183,6 @@ async function getItemList() {
 
 async function getPublicApibossServerDetails() {
     let publicServerDetail = await $$.requireJSON(`${APP_CONSTANTS.APIBOSS_CONF_PATH}/serverDetails.json`);
-    console.log(publicServerDetail.servers.default);
     return publicServerDetail.servers.default;
 }
 
