@@ -119,6 +119,13 @@ async function getModel(isPublicServer) {
         api.port = serverDetails.port;
        })
     }
+    else {
+        retModel?.apis.forEach(async (api)=>{
+        if(api?.apikeys){ delete api.apikeys }
+        if(api?.serverIP){ delete api.serverIP }
+        if(api?.port){ delete api.port }
+       })
+    }
     retModel?.policies.forEach((policy)=> {if(policy.password.length) policy.password = ""});
     return retModel;
 
