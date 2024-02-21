@@ -106,8 +106,8 @@ async function publishModel(parsedData, name, server, port, adminid, adminpasswo
             [server, port, adminid, adminpassword, name] = await getPublicApibossServerDetails(region);
             
             let finalArr = [];
-            finalArr.push(JSON.parse(JSON.stringify({rateLimit: parsedData[0]})));
-            finalArr.push(JSON.parse(JSON.stringify({inputoutput: parsedData[1]})));
+            finalArr.push(JSON.parse(JSON.stringify({rateLimit: parsedData[0].rateLimit})));
+            finalArr.push(JSON.parse(JSON.stringify({inputoutput: parsedData[1].inputoutput})));
             finalArr.push(JSON.parse(JSON.stringify({apiregistrydata: parsedData[2].apiregistrydata[region].apiregistrydata})));
             const loginResult = await loginToServer(server, port, adminid, adminpassword);
     if (!loginResult.result) return loginResult;    // failed to connect or login
